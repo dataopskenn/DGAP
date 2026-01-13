@@ -12,10 +12,13 @@ def utc_now() -> str:
 
 
 def discover_raw_files(raw_root: Path) -> List[Path]:
+    """Discover .parquet files under raw_root, excluding _incoming staging directory."""
     raw_root = raw_root.resolve()
     files: List[Path] = []
     for p in raw_root.rglob("*.parquet"):
-        files.append(p)
+        # Exclude staging directory to prevent ingesting partial/in-progress files
+        if "_incoming" not in p.parts:
+            files.append(p)
     return sorted(files)
 
 

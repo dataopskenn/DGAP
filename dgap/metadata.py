@@ -25,7 +25,8 @@ CREATE TABLE IF NOT EXISTS file_registry (
     source_uri TEXT,
     first_seen_at TEXT NOT NULL,
     first_ingestion_run_id TEXT NOT NULL,
-    CONSTRAINT bytes_match CHECK (bytes_hashed = file_size_bytes)
+    CONSTRAINT bytes_match CHECK (bytes_hashed = file_size_bytes),
+    FOREIGN KEY (first_ingestion_run_id) REFERENCES ingestion_runs(run_id)
 );
 
 CREATE INDEX IF NOT EXISTS idx_checksum ON file_registry(checksum_sha256);

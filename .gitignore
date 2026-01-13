@@ -27,4 +27,7 @@ Thumbs.db
 
 # Copilot instructions (local agent artifacts)
 .github/copilot-instructions.md
-push_to_github.ps1
+
+# Local scripts (may contain paths/secrets)
+scripts/
+*.ps1

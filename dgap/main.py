@@ -138,11 +138,18 @@ def fetch_mode(args) -> int:
 
     if args.year:
         start_year = int(args.year)
-        start_month = 1
-        end_year = int(args.year)
-        end_month = 12
+        if args.month:
+            # Single month: --year YYYY --month M
+            start_month = args.month
+            end_year = start_year
+            end_month = args.month
+        else:
+            # Full year: --year YYYY
+            start_month = 1
+            end_year = start_year
+            end_month = 12
     else:
-        # parse --from / --to  YYYY-MM
+        # Range: --from YYYY-MM --to YYYY-MM
         def parse_ym(s: str):
             y, m = s.split("-")
             return int(y), int(m)
@@ -161,6 +168,7 @@ if __name__ == "__main__":
     fetch_parser = subparsers.add_parser("fetch", help="Download raw files from remote sources")
     fetch_parser.add_argument("--dataset", required=True, help="Dataset name (e.g. yellow_tripdata)")
     fetch_parser.add_argument("--year", help="Fetch all 12 months for YYYY")
+    fetch_parser.add_argument("--month", type=int, help="Single month (1-12), use with --year")
     fetch_parser.add_argument("--from", dest="from_month", help="Start month YYYY-MM (inclusive)")
     fetch_parser.add_argument("--to", dest="to_month", help="End month YYYY-MM (inclusive)")
     fetch_parser.add_argument("--raw-root", required=True, help="Raw root folder path")
@@ -169,13 +177,15 @@ if __name__ == "__main__":
     ingest_parser = subparsers.add_parser("ingest", help="Ingest raw files into ledger (Sprint 1)")
     ingest_parser.add_argument("--dry-run", action="store_true", help="Do not write DB; show plan")
     ingest_parser.add_argument("--raw-root", default="data/raw", help="Raw root folder (default: data/raw)")
-    ingest_parser.add_argument("--db-path", default="dgap.db", help="SQLite DB path (default: dgap.db)")
+    ingest_parser.add_argument("--db-path", default="data/ledger.db", help="SQLite DB path (default: data/ledger.db)")
 
     args = parser.parse_args()
 
     if args.command == "fetch":
         if not args.year and not (args.from_month and args.to_month):
-            parser.error("fetch requires --year or both --from and --to")
+            parser.error("fetch requires --year [--month M] or both --from and --to")
+        if args.month and not args.year:
+            parser.error("--month requires --year")
         rc = fetch_mode(args)
     elif args.command == "ingest":
         rc = ingest_mode(dry_run=args.dry_run, raw_root=Path(args.raw_root), db_path=Path(args.db_path))

@@ -12,8 +12,16 @@ from datetime import datetime, timezone
 TLC_URL = "https://d37ci6vzurychx.cloudfront.net/trip-data/{dataset}_{year}-{month:02d}.parquet"
 
 
-def utc_now_iso() -> str:
+def utc_now() -> str:
+    """Return current UTC time as ISO8601 string."""
     return datetime.now(timezone.utc).isoformat()
+
+
+def _inc_month(year: int, month: int) -> tuple:
+    """Increment year/month by one month."""
+    if month == 12:
+        return year + 1, 1
+    return year, month + 1
 
 
 def _make_targets(raw_root: Path, dataset: str, year: int, month: int) -> Tuple[Path, Path, Path]:
@@ -33,7 +41,7 @@ def _write_sidecar(final_path: Path, source_uri: str, dataset: str, year: int, m
         "dataset": dataset,
         "year": year,
         "month": month,
-        "fetched_at_utc": utc_now_iso(),
+        "fetched_at_utc": utc_now(),
         "bytes": bytes_count,
     }
     with sidecar.open("w", encoding="utf-8") as fh:
@@ -49,15 +57,9 @@ def fetch_range(raw_root: Path, dataset: str, start_year: int, start_month: int,
     """Fetch inclusive range from start_year/start_month to end_year/end_month.
     Returns 0 on success (no failures), non-zero if any failed downloads (network/server).
     """
-    # iterate months
     cur_year = start_year
     cur_month = start_month
     failures = 0
-
-    def _inc(y, m):
-        if m == 12:
-            return y + 1, 1
-        return y, m + 1
 
     while (cur_year < end_year) or (cur_year == end_year and cur_month <= end_month):
         final, staging, partial = _make_targets(raw_root, dataset, cur_year, cur_month)
@@ -85,7 +87,7 @@ def fetch_range(raw_root: Path, dataset: str, start_year: int, start_month: int,
                 log = dict(log_base)
                 log.update({"status": "skipped", "reason": "already_exists", "duration_ms": 0})
                 _log(log)
-                cur_year, cur_month = _inc(cur_year, cur_month)
+                cur_year, cur_month = _inc_month(cur_year, cur_month)
                 continue
 
             # Stream download into partial file
@@ -104,19 +106,19 @@ def fetch_range(raw_root: Path, dataset: str, start_year: int, start_month: int,
             # Post-download checks
             if not partial.exists():
                 log = dict(log_base)
-                log.update({"status": "failed", "reason": "zero_bytes"})
+                log.update({"status": "error", "reason": "zero_bytes"})
                 _log(log)
                 failures += 1
-                cur_year, cur_month = _inc(cur_year, cur_month)
+                cur_year, cur_month = _inc_month(cur_year, cur_month)
                 continue
 
             size = partial.stat().st_size
             if size == 0:
                 log = dict(log_base)
-                log.update({"status": "failed", "reason": "zero_bytes", "bytes": 0})
+                log.update({"status": "error", "reason": "zero_bytes", "bytes": 0})
                 _log(log)
                 failures += 1
-                cur_year, cur_month = _inc(cur_year, cur_month)
+                cur_year, cur_month = _inc_month(cur_year, cur_month)
                 continue
 
             # Rename partial -> staging (remove .partial suffix)
@@ -124,7 +126,7 @@ def fetch_range(raw_root: Path, dataset: str, start_year: int, start_month: int,
                 partial.replace(staging)
             except Exception as e:
                 log = dict(log_base)
-                log.update({"status": "failed", "reason": "rename_failed", "error": str(e)})
+                log.update({"status": "error", "reason": "rename_failed", "error": str(e)})
                 _log(log)
                 # leave partial for forensics
                 return 2
@@ -145,11 +147,11 @@ def fetch_range(raw_root: Path, dataset: str, start_year: int, start_month: int,
                     _write_sidecar(final, source_uri, dataset, cur_year, cur_month, size)
                     duration_ms = int((time.time() - start_ts) * 1000)
                     log = dict(log_base)
-                    log.update({"status": "downloaded", "bytes": size, "duration_ms": duration_ms})
+                    log.update({"status": "success", "bytes": size, "duration_ms": duration_ms})
                     _log(log)
             except Exception as e:
                 log = dict(log_base)
-                log.update({"status": "failed", "reason": "rename_failed", "error": str(e)})
+                log.update({"status": "error", "reason": "rename_failed", "error": str(e)})
                 _log(log)
                 return 2
 
@@ -157,23 +159,23 @@ def fetch_range(raw_root: Path, dataset: str, start_year: int, start_month: int,
             code = he.code
             reason = "expected_absence" if code in (404, 403, 410) else "server_error"
             log = dict(log_base)
-            log.update({"status": "skipped" if reason == "expected_absence" else "failed", "reason": reason, "http_status": code})
+            log.update({"status": "skipped" if reason == "expected_absence" else "error", "reason": reason, "http_status": code})
             _log(log)
             if reason != "expected_absence":
                 failures += 1
 
         except URLError as ue:
             log = dict(log_base)
-            log.update({"status": "failed", "reason": "network_error", "error": str(ue)})
+            log.update({"status": "error", "reason": "network_error", "error": str(ue)})
             _log(log)
             failures += 1
 
         except Exception as e:
             log = dict(log_base)
-            log.update({"status": "failed", "reason": "network_error", "error": str(e)})
+            log.update({"status": "error", "reason": "network_error", "error": str(e)})
             _log(log)
             failures += 1
 
-        cur_year, cur_month = _inc(cur_year, cur_month)
+        cur_year, cur_month = _inc_month(cur_year, cur_month)
 
     return 1 if failures > 0 else 0

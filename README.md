@@ -130,7 +130,7 @@ python -m dgap.main ingest --dry-run
 
 This discovers candidate files and computes checksums to determine which files would be ingested or skipped. Dry‑run performs hashing but does not write the SQLite ledger.
 
-Run a normal ingestion (writes `dgap.db`):
+Run a normal ingestion (writes `data/ledger.db`):
 
 ```powershell
 python -m dgap.main ingest
