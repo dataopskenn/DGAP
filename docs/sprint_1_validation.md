@@ -30,25 +30,25 @@ Commands to run
 ---------------
 1. Dry-run (plan only):
 
-	 python -m dgap.main ingest --dry-run
+	 python -m dgap.main --dry-run
 
-2. Normal ingestion (writes `data/ledger.db`):
+2. Normal ingestion (writes `dgap.db`):
 
-	 python -m dgap.main ingest
+	 python -m dgap.main
 
 3. Re-run to demonstrate idempotency:
 
-	 python -m dgap.main ingest
+	 python -m dgap.main
 
 4. Collision test (manual step): corrupt or replace one of the three files in place
 	 (for example, append a few bytes to `yellow_tripdata_2023-02.parquet`) then:
 
-	 python -m dgap.main ingest
+	 python -m dgap.main
 
 What to capture in this document
 --------------------------------
 - Full CLI stdout for each of the four runs above.
-- The results of the following SQL queries against the created `data/ledger.db` after runs:
+- The results of the following SQL queries against the created `dgap.db` after runs:
 
 	- List ingestion runs (ordered by start):
 

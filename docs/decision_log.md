@@ -1,5 +1,5 @@
 
-# Decision Log — Sprint 1 (with Sprint 2 references)
+# Decision Log  Sprint 1 (with Sprint 2 references)
 
 Purpose and scope
 -----------------
@@ -17,9 +17,9 @@ for our use case. A streaming implementation avoids loading entire files into me
 the approach scalable to large files.
 
 Alternatives considered:
-- File-system metadata (inode, mtime) — rejected because metadata can change independently
+- File-system metadata (inode, mtime)  rejected because metadata can change independently
   of content and lacks cross-platform determinism.
-- Content-based heuristics (size + partial hash) — rejected because partial checks can
+- Content-based heuristics (size + partial hash)  rejected because partial checks can
   produce false negatives and weaken guarantees.
 
 Risks accepted:
@@ -40,8 +40,8 @@ mode offers good write concurrency and durability characteristics for local use.
 SQLite avoids external service dependencies while making auditing and querying straightforward.
 
 Alternatives considered:
-- Plain files (CSV/JSON) — rejected due to atomicity and concurrency limitations.
-- External DB (Postgres, etc.) — rejected due to added operational complexity for Sprint 1.
+- Plain files (CSV/JSON)  rejected due to atomicity and concurrency limitations.
+- External DB (Postgres, etc.)  rejected due to added operational complexity for Sprint 1.
 
 Risks accepted:
 - Single-node storage: SQLite is not intended as a distributed ledger. For Sprint 1 this is
@@ -60,7 +60,7 @@ may use backslashes but are normalized to forward slashes). Blocking symlinks av
 security issues where a symlink could point to an unexpected or sensitive location.
 
 Alternatives considered:
-- Allow symlinks with canonical resolution — rejected to reduce attack surface for Sprint 1.
+- Allow symlinks with canonical resolution  rejected to reduce attack surface for Sprint 1.
 
 Risks accepted:
 - Some workflows that rely on symlinks will need adjustment; this is acceptable for the
@@ -74,7 +74,7 @@ Why: Eliminates third-party supply-chain issues and simplifies the runtime envir
 minimal, auditable prototype.
 
 Alternatives considered:
-- Use `pandas`/`pyarrow` for file discovery and schema inspection — rejected because that
+- Use `pandas`/`pyarrow` for file discovery and schema inspection  rejected because that
   expands scope into data processing, which is explicitly out-of-scope for Sprint 1.
 
 Deferred:
@@ -88,7 +88,7 @@ Why: 1MB is a practical tradeoff between system call overhead and memory usage. 
 reasonably well across file sizes common in raw data ingestion.
 
 Alternatives considered:
-- Larger chunk sizes — reduce syscalls but use more memory; could be considered if profiling
+- Larger chunk sizes  reduce syscalls but use more memory; could be considered if profiling
   indicates benefit.
 
 Conclusion
@@ -103,10 +103,10 @@ Sprint 2 references (fetch → ingest)
 Sprint 2 adds a transport layer that downloads files prior to ingestion. The following ADRs
 capture the decisions and rationale:
 
-- ADR-002: Fetch–Ingest Separation — fetch is transport-only; ingestion remains hashing + ledger.
-- ADR-003: Canonical Raw Layout — deterministic `source=.../dataset=.../year=.../month=.../` paths.
-- ADR-004: Staging and Atomic Commit — `_incoming/` with `.partial` and atomic rename to prevent partial files.
-- ADR-005: Sidecar Provenance — `.meta.json` files provide `source_uri` without coupling fetch to SQLite.
+- ADR-002: Fetch–Ingest Separation  fetch is transport-only; ingestion remains hashing + ledger.
+- ADR-003: Canonical Raw Layout  deterministic `source=.../dataset=.../year=.../month=.../` paths.
+- ADR-004: Staging and Atomic Commit  `_incoming/` with `.partial` and atomic rename to prevent partial files.
+- ADR-005: Sidecar Provenance  `.meta.json` files provide `source_uri` without coupling fetch to SQLite.
 
 How raw files arrive on disk (Sprint 2)
 ---------------------------------------

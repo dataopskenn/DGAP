@@ -1,6 +1,6 @@
 # Data Layout & Provenance
 
-I write fetched data into a canonical, Hive‑style partitioned layout. Sidecars provide provenance linking files to their source.
+Fetched data is written into a canonical, Hive‑style partitioned layout. Sidecars provide provenance linking files to their source.
 
 ## Canonical Layout
 ```text

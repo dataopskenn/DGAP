@@ -1,19 +1,19 @@
-# DGAP — Decision‑Grade Acquisition Pipeline
+# DGAP  Decision‑Grade Acquisition Pipeline
 
 Overview
 --------
-I designed DGAP to demonstrate a trustworthy, idempotent, auditable acquisition system for raw data. I organized the work into incremental sprints:
+DGAP is a trustworthy, idempotent, auditable acquisition system for raw data. The implementation is organized into incremental sprints:
 
-- **Sprint 1:** Ingestion — file discovery, streaming SHA‑256 checksums, SQLite ledger.
-- **Sprint 2:** Fetch — transport‑only layer that downloads files into a canonical layout before ingestion.
+- **Sprint 1:** Ingestion  file discovery, streaming SHA‑256 checksums, SQLite ledger.
+- **Sprint 2:** Fetch  transport‑only layer that downloads files into a canonical layout before ingestion.
 
-I implement this in Python 3.9+ using only the standard library.
+The system is implemented in Python 3.9+ using only the standard library.
 
 ---
 
-Sprint 2 — Fetch → Ingest
+Sprint 2  Fetch → Ingest
 -------------------------
-In Sprint 2, I introduce a **transport layer** (`dgap fetch`) that downloads raw files from remote sources (initially NYC TLC) into a canonical filesystem layout. The Sprint 1 ingestion pipeline runs unchanged.
+Sprint 2 introduces a **transport layer** (`dgap fetch`) that downloads raw files from remote sources (initially NYC TLC) into a canonical filesystem layout. The Sprint 1 ingestion pipeline operates unchanged.
 
 ### Why separate transport from ingestion?
 
@@ -24,8 +24,8 @@ In Sprint 2, I introduce a **transport layer** (`dgap fetch`) that downloads raw
 
 This separation ensures:
 
-- I can test each layer independently.
-- Failures are attributable to one layer.
+- Each layer can be tested independently.
+- Failures are attributable to a single layer.
 - Sprint 1 behavior is preserved verbatim.
 
 ### Staging and atomic commit
@@ -94,13 +94,13 @@ python -c "import sqlite3; con=sqlite3.connect('data/ledger.db'); [print(r) for 
 
 ---
 
-Sprint 1 — Ingestion
+Sprint 1  Ingestion
 --------------------
-In Sprint 1, I implement the minimal, foundational capabilities required to establish provenance and immutability guarantees for ingested files.
+Sprint 1 implements the minimal, foundational capabilities required to establish provenance and immutability guarantees for ingested files.
 
 ### How raw files arrive on disk (Sprint 2)
-- I fetch files into a canonical layout under `raw_root` using a staging directory (`_incoming/`) and atomic moves so partial files never appear in final locations.
-- For each `.parquet` file, I write a `.meta.json` sidecar containing the `source_uri` and fetch metadata. Ingestion reads this sidecar (best‑effort) and records `source_uri` in the ledger. Missing or malformed sidecars never cause ingestion to fail and do not affect idempotency.
+- The fetch layer retrieves files into a canonical layout under `raw_root` using a staging directory (`_incoming/`) and atomic moves so partial files never appear in final locations.
+- For each `.parquet` file, the system writes a `.meta.json` sidecar containing the `source_uri` and fetch metadata. Ingestion reads this sidecar (best‑effort) and records `source_uri` in the ledger. Missing or malformed sidecars never cause ingestion to fail and do not affect idempotency.
 - Ingestion has no HTTP logic and no access to remote systems; it only observes local files and writes to SQLite.
 
 ### Goals and guarantees
@@ -113,10 +113,10 @@ In Sprint 1, I implement the minimal, foundational capabilities required to esta
 
 High‑level architecture
 -----------------------
-- `dgap.main` — I orchestrate runs and expose a simple CLI (supports `--dry-run`).
-- `dgap.ingest_raw` — I discover files under a configured `raw` root, verify guardrails (exists, regular file, not a symlink, non‑zero size), and convert paths to POSIX‑relative `raw_path` values.
-- `dgap.idempotency` — I compute SHA‑256 checksums by streaming file bytes and measure computation time and bytes hashed.
-- `dgap.metadata` — I initialize and manipulate the SQLite ledger (tables: `ingestion_runs`, `file_registry`) and enforce PRAGMA settings for durability and atomicity.
+- `dgap.main`  Orchestrates runs and exposes a simple CLI (supports `--dry-run`).
+- `dgap.ingest_raw`  Discovers files under a configured `raw` root, verifies guardrails (exists, regular file, not a symlink, non‑zero size), and converts paths to POSIX‑relative `raw_path` values.
+- `dgap.idempotency`  Computes SHA‑256 checksums by streaming file bytes and measures computation time and bytes hashed.
+- `dgap.metadata`  Initializes and manages the SQLite ledger (tables: `ingestion_runs`, `file_registry`) and enforces PRAGMA settings for durability and atomicity.
 
 Getting started (examples)
 --------------------------
@@ -136,7 +136,7 @@ Run a normal ingestion (writes `data/ledger.db`):
 python -m dgap.main ingest
 ```
 
-By default I look for files under `data/raw/` and create `data/ledger.db`. Use `--raw-root` and `--db-path` CLI flags to change these locations.
+By default the system looks for files under `data/raw/` and creates `data/ledger.db`. Use `--raw-root` and `--db-path` CLI flags to change these locations.
 
 Data model and important implementation details
 ----------------------------------------------
@@ -150,20 +150,20 @@ Data model and important implementation details
 
 Design constraints and rationale
 --------------------------------
-I intentionally restrict the problem surface to ensure reproducibility and auditability:
-- Standard library only — no third‑party dependencies to reduce supply‑chain and environment variability.
-- No schema inspection or parquet parsing — this sprint is about ingestion and provenance, not data validation or analytics.
+The implementation intentionally restricts the problem surface to ensure reproducibility and auditability:
+- Standard library only  no third‑party dependencies to reduce supply‑chain and environment variability.
+- No schema inspection or parquet parsing  this sprint is about ingestion and provenance, not data validation or analytics.
 
 Where to look in the source
 ---------------------------
-- `dgap/main.py` — entrypoint and run orchestration.
-- `dgap/ingest_raw.py` — discovery and guardrails.
-- `dgap/idempotency.py` — checksum implementation.
-- `dgap/metadata.py` — schema and DB interactions.
+- `dgap/main.py`  entrypoint and run orchestration.
+- `dgap/ingest_raw.py`  discovery and guardrails.
+- `dgap/idempotency.py`  checksum implementation.
+- `dgap/metadata.py`  schema and DB interactions.
 
 Validation and tests
 --------------------
-I validate with three acceptance tests (manual or scripted):
+The system is validated with three acceptance tests (manual or scripted):
 1. First run: ingest a locked set of files and create registry rows.
 2. Second run: re‑run to verify idempotency (files are skipped, no duplicates).
 3. Collision: simulate a file with the same `raw_path` but different checksum and verify the pipeline fails and records an error.

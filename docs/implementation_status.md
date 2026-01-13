@@ -1,10 +1,10 @@
-# Implementation Status — DGAP Sprint 1 Prototype
+# Implementation Status  DGAP Sprint 1 Prototype
 
 Summary
 - This repo contains a focused Sprint 1 prototype for DGAP: decision-grade raw ingestion + metadata ledger.
 - Work completed (prototype preserved): code, CLI, SQLite ledger, docs scaffolding, and a helper script to push to GitHub.
 
-# Implementation Status — DGAP Sprint 1 Prototype
+# Implementation Status  DGAP Sprint 1 Prototype
 
 Preface
 -------
@@ -24,7 +24,7 @@ The prototype implements a local-file ingestion pipeline that:
 - Persists provenance and run metadata to a local SQLite ledger (`ingestion_runs` and
   `file_registry`) using a careful transactional strategy and PRAGMA settings.
 
-This prototype intentionally avoids data inspection or transformation — its sole purpose
+This prototype intentionally avoids data inspection or transformation  its sole purpose
 is to establish a reproducible, auditable record of file ingestion attempts.
 
 Module-level overview
@@ -101,7 +101,7 @@ Recommended next steps (practical roadmap)
 
 Appendix: primary file locations
 --------------------------------
-- `dgap/main.py` — orchestration and CLI
-- `dgap/ingest_raw.py` — discovery + guardrails
-- `dgap/idempotency.py` — streaming checksum
-- `dgap/metadata.py` — SQLite ledger helpers
+- `dgap/main.py`  orchestration and CLI
+- `dgap/ingest_raw.py`  discovery + guardrails
+- `dgap/idempotency.py`  streaming checksum
+- `dgap/metadata.py`  SQLite ledger helpers

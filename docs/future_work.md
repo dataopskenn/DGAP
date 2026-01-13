@@ -1,4 +1,4 @@
-# Future Work — Deferred from Sprint 2
+# Future Work  Deferred from Sprint 2
 
 This document lists capabilities explicitly deferred from Sprint 2. These are
 candidates for Sprint 3 and beyond.

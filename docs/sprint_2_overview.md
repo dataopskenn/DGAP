@@ -1,4 +1,4 @@
-# Sprint 2 Overview — Fetch → Ingest
+# Sprint 2 Overview  Fetch → Ingest
 
 ## Goals
 

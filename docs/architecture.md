@@ -15,11 +15,11 @@ flowchart TD
   Ingest -->|write| SQLite[(SQLite Ledger)]
 ```
 
-- Fetch: my transport‑only layer that stages downloads and commits atomically so partial files never land in final locations.
-- Ingestion: my streaming checksum and idempotency layer that records provenance in SQLite.
+- Fetch: Transport‑only layer that stages downloads and commits atomically so partial files never land in final locations.
+- Ingestion: Streaming checksum and idempotency layer that records provenance in SQLite.
 
 ## Component Responsibilities
-- `dgap.main`: my CLI entry, argument parsing, and command dispatch (fetch/ingest).
+- `dgap.main`: CLI entry, argument parsing, and command dispatch (fetch/ingest).
 - `dgap.fetch_raw`: downloads into `raw_root/_incoming/.../*.partial`, renames to staging, atomically moves to final canonical paths; writes sidecars and JSON logs.
 - `dgap.ingest_raw`: discovers files under `raw_root`, validates guardrails, computes SHA‑256 checksums (1MB chunks), reads sidecars best‑effort, writes the ledger.
 - `dgap.idempotency`: streaming checksum utilities, consistent run IDs, timestamp helpers.

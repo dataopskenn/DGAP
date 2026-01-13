@@ -1,11 +1,11 @@
 # Fetch Guide (Sprint 2)
 
-Here’s how I perform transport‑only fetching into my canonical raw layout with staging and atomic commit, plus sidecar creation and logging.
+This guide describes transport‑only fetching into the canonical raw layout with staging and atomic commit, plus sidecar creation and logging.
 
 ## Scope and Guarantees
 - Transport only: I don’t hash here and I don’t write SQLite.
 - Atomic commit: I only create final paths when the download is complete and validated.
-- Provenance: I write sidecars with `source_uri` and fetch metadata; ingestion reads these best‑effort.
+- Provenance: The system writes sidecars with `source_uri` and fetch metadata; ingestion reads these best‑effort.
 - Idempotent integration: ingestion remains the single source of truth for the ledger.
 
 ## URL Pattern (NYC TLC)
@@ -35,7 +35,7 @@ sequenceDiagram
 ```
 
 - Partial files never appear in final locations.
-- If the final file already exists, I delete staging and log `status=skipped, reason=already_exists`.
+- If the final file already exists, the system deletes staging and logs `status=skipped, reason=already_exists`.
 
 ## Sidecar Schema
 A `.meta.json` file accompanies each parquet in the same directory:

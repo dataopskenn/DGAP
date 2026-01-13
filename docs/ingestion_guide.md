@@ -1,9 +1,9 @@
 # Ingestion Guide (Sprint 1)
 
-Here’s how I perform discovery, guardrails, streaming checksums, idempotency/collision handling, and ledger writes.
+This guide describes discovery, guardrails, streaming checksums, idempotency/collision handling, and ledger writes.
 
 ## Goals
-- Immutable ingestion: I never mutate raw files.
+- Immutable ingestion: Raw files are never mutated.
 - Idempotent results: re‑runs don’t duplicate entries.
 - Auditable ledger: I record all runs with UTC timestamps.
 
@@ -27,7 +27,7 @@ flowchart TD
 ## Key Definitions
 - `raw_path`: POSIX‑style relative path under the configured `raw_root`.
 - `checksum_sha256`: streaming hash of file content (1MB chunks).
-- `bytes_hashed` equals file size; I enforce `CHECK(bytes_hashed = file_size_bytes)`.
+- `bytes_hashed` equals file size; enforced via `CHECK(bytes_hashed = file_size_bytes)`.
 
 ## Idempotency and Collisions
 
@@ -43,12 +43,12 @@ flowchart LR
 - Same `raw_path` + different checksum → collision (signals corruption or overwrite).
 
 ## Sidecar Handling (Best‑Effort)
-- If `<file>.parquet.meta.json` exists, I read it and store `source_uri` in `file_registry.source_uri`.
+- If `<file>.parquet.meta.json` exists, the system reads it and stores `source_uri` in `file_registry.source_uri`.
 - Missing or malformed sidecars don’t affect idempotency and never cause ingestion to fail.
 
 ## SQLite Schema & PRAGMAs
 
-I enforce these settings for durability and performance:
+The system enforces these settings for durability and performance:
 ```sql
 PRAGMA journal_mode = WAL;  -- Write-ahead logging for better concurrency
 PRAGMA synchronous = NORMAL;  -- Balance durability vs performance  
