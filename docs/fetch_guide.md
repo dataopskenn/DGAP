@@ -23,15 +23,15 @@ raw_root/source=tlc/dataset=<dataset>/year=YYYY/month=MM/<dataset>_YYYY-MM.parqu
 
 ```mermaid
 sequenceDiagram
-  participant Me as CLI
+  participant Operator as Operator/CLI
   participant F as Fetch
   participant FS as Filesystem
-  Me->>F: fetch --dataset yellow_tripdata --year 2024 --raw-root data/raw
+  Operator->>F: fetch --dataset yellow_tripdata --year 2024 --raw-root data/raw
   F->>FS: download → data/raw/_incoming/source=tlc/dataset=yellow_tripdata/year=2024/month=01/yellow_tripdata_2024-01.parquet.partial
   F->>FS: rename .partial → staging name (no .partial)
   F->>FS: atomic move staging → data/raw/source=tlc/dataset=yellow_tripdata/year=2024/month=01/yellow_tripdata_2024-01.parquet
   F->>FS: write sidecar yellow_tripdata_2024-01.parquet.meta.json
-  F-->>Me: log JSON record for the attempt
+  F-->>Operator: log JSON record to stdout
 ```
 
 - Partial files never appear in final locations.
@@ -64,12 +64,29 @@ python -m dgap.main fetch --dataset yellow_tripdata --from 2024-01 --to 2024-03 
 ```
 
 ## Logging
-Each attempt emits one JSON record with at least:
-- `timestamp`, `level`, `action`
-- `dataset`, `year`, `month`
-- `source_uri`, `target_path`, `raw_root`
-- `bytes`, `duration_ms`
-- `status` (`success|skipped|error`), `reason` when applicable
+
+I emit one JSON record per file attempt to stdout. Example:
+```json
+{
+  "timestamp": "2026-01-13T16:30:00Z",
+  "level": "INFO",
+  "action": "fetch",
+  "dataset": "yellow_tripdata",
+  "year": 2024,
+  "month": 1,
+  "source_uri": "https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2024-01.parquet",
+  "target_path": "data/raw/source=tlc/dataset=yellow_tripdata/year=2024/month=01/yellow_tripdata_2024-01.parquet",
+  "raw_root": "data/raw",
+  "bytes": 12345678,
+  "duration_ms": 4500,
+  "status": "success"
+}
+```
+
+**Fields:**
+- `status`: `success|skipped|error`
+- `reason`: additional context when `status != success`
+- All other fields present on every record
 
 ## Integration with Ingestion
 - Fetch doesn’t compute checksums or write to SQLite.

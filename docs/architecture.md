@@ -29,15 +29,15 @@ flowchart TD
 
 ```mermaid
 sequenceDiagram
-  participant Me as CLI
+  participant Operator as Operator/CLI
   participant F as Fetch
   participant FS as Raw Storage
-  Me->>F: fetch --dataset <name> --year/mo --raw-root <path>
+  Operator->>F: fetch --dataset <name> --year/mo --raw-root <path>
   F->>FS: download → _incoming/.../<file>.parquet.partial
   F->>FS: rename .partial → staging file
   F->>FS: atomic move staging → final canonical path
   F->>FS: write <file>.parquet.meta.json
-  F-->>Me: log JSON {status, bytes, duration_ms}
+  F-->>Operator: log JSON {status, bytes, duration_ms}
 ```
 
 ## Data Flow (Ingestion)

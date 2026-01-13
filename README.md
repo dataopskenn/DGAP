@@ -62,6 +62,8 @@ do not fail ingestion.
 
 ### Quick start (Sprint 2)
 
+Prerequisites: Python 3.9+, sqlite3 CLI (or use Python snippets below).
+
 ```powershell
 # Step 1: Fetch raw files
 python -m dgap.main fetch --dataset yellow_tripdata --year 2024 --raw-root data/raw
@@ -69,8 +71,11 @@ python -m dgap.main fetch --dataset yellow_tripdata --year 2024 --raw-root data/
 # Step 2: Ingest (Sprint 1, unchanged)
 python -m dgap.main ingest --raw-root data/raw --db-path data/ledger.db
 
-# Step 3: Verify
+# Step 3: Verify (sqlite3 CLI)
 sqlite3 data/ledger.db "SELECT raw_path, source_uri, checksum_sha256 FROM file_registry LIMIT 5;"
+
+# Step 3: Verify (Python alternative)
+python -c "import sqlite3; con=sqlite3.connect('data/ledger.db'); [print(r) for r in con.execute('SELECT raw_path, source_uri, checksum_sha256 FROM file_registry LIMIT 5')]; con.close()"
 ```
 
 ### Documentation
@@ -120,7 +125,7 @@ Prerequisites: Python 3.9+ available on PATH.
 Run a read‑only plan (dry‑run):
 
 ```powershell
-python -m dgap.main --dry-run
+python -m dgap.main ingest --dry-run
 ```
 
 This discovers candidate files and computes checksums to determine which files would be ingested or skipped. Dry‑run performs hashing but does not write the SQLite ledger.
@@ -128,10 +133,10 @@ This discovers candidate files and computes checksums to determine which files w
 Run a normal ingestion (writes `dgap.db`):
 
 ```powershell
-python -m dgap.main
+python -m dgap.main ingest
 ```
 
-By default I look for files under `data/raw/` and create `dgap.db` in the repository root. Use `--raw-root` and `--db` CLI flags to change these locations.
+By default I look for files under `data/raw/` and create `data/ledger.db`. Use `--raw-root` and `--db-path` CLI flags to change these locations.
 
 Data model and important implementation details
 ----------------------------------------------

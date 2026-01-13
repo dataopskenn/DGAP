@@ -46,9 +46,44 @@ flowchart LR
 - If `<file>.parquet.meta.json` exists, I read it and store `source_uri` in `file_registry.source_uri`.
 - Missing or malformed sidecars don’t affect idempotency and never cause ingestion to fail.
 
+## SQLite Schema & PRAGMAs
+
+I enforce these settings for durability and performance:
+```sql
+PRAGMA journal_mode = WAL;  -- Write-ahead logging for better concurrency
+PRAGMA synchronous = NORMAL;  -- Balance durability vs performance  
+PRAGMA foreign_keys = ON;  -- Enforce referential integrity
+```
+
+**Tables:**
+```sql
+CREATE TABLE ingestion_runs (
+    run_id TEXT PRIMARY KEY,
+    started_at_utc TEXT NOT NULL,
+    finished_at_utc TEXT,
+    status TEXT NOT NULL,
+    files_seen INTEGER DEFAULT 0,
+    files_ingested INTEGER DEFAULT 0,
+    errors TEXT
+);
+
+CREATE TABLE file_registry (
+    raw_path TEXT PRIMARY KEY,
+    checksum_sha256 TEXT NOT NULL,
+    file_size_bytes INTEGER NOT NULL,
+    bytes_hashed INTEGER NOT NULL,
+    checksum_duration_ms INTEGER NOT NULL,
+    source_uri TEXT,
+    first_seen_run_id TEXT NOT NULL,
+    ingested_at_utc TEXT NOT NULL,
+    CONSTRAINT bytes_match CHECK (bytes_hashed = file_size_bytes),
+    FOREIGN KEY (first_seen_run_id) REFERENCES ingestion_runs(run_id)
+);
+```
+
 ## CLI Examples
 ```powershell
-# Dry-run: compute checksums without writing SQLite
+# Dry‑run: compute checksums without writing SQLite
 python -m dgap.main ingest --raw-root data/raw --db-path data/ledger.db --dry-run
 
 # Normal run
