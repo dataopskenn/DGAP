@@ -1,0 +1,30 @@
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+venv/
+.venv/
+
+# Environment files
+.env
+.env.*
+
+# SQLite / local DBs
+*.db
+*.sqlite
+*.sqlite3
+
+# Local data (raw files should not be committed)
+data/
+data/raw/
+
+# IDE / OS
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
+
+# Copilot instructions (local agent artifacts)
+.github/copilot-instructions.md
+push_to_github.ps1
